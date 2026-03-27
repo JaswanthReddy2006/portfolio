@@ -3,9 +3,14 @@ import { motion } from 'framer-motion';
 import { TextReveal, BlurIn } from './ScrollAnimations';
 
 export default function SectionWrapper({ id, children, className = '', bg = 'white' }) {
-  const bgStyle = bg === 'alt' ? 'rgba(248,250,252,0.85)' : 'rgba(255,255,255,0.85)';
+  // Use subtle glassmorphism to let the colorful background shine through
+  // 'alt' gets a slightly more opaque/different tint for separation
+  const bgClass = bg === 'alt' 
+    ? 'bg-slate-50/60 backdrop-blur-sm' 
+    : 'bg-white/40 backdrop-blur-sm';
+
   return (
-    <section id={id} className={`relative py-20 px-4 sm:px-6 lg:px-8 ${className} overflow-hidden`} style={{ backgroundColor: bgStyle }}>
+    <section id={id} className={`relative py-20 px-4 sm:px-6 lg:px-8 ${className} overflow-hidden ${bgClass}`}>
       <div className="max-w-6xl mx-auto relative z-10">{children}</div>
     </section>
   );

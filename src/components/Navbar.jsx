@@ -35,7 +35,7 @@ export default function Navbar() {
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-end h-16">
+        <div className="flex items-center justify-end md:justify-center h-16">
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
@@ -49,7 +49,7 @@ export default function Navbar() {
               </a>
             ))}
             <a
-              href="/myupdatedcv.docx"
+              href="/jaswanth_reddy_cv.pdf"
               download
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-md shadow-blue-600/20"
             >
@@ -88,8 +88,8 @@ export default function Navbar() {
                 </a>
               ))}
               <a
-                href="/myupdatedcv.docx"
-                download
+                href="/jaswanth_reddy_cv.pdf"
+                download="jaswanth_reddy_cv.pdf"
                 className="block text-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Download Resume

@@ -1,9 +1,9 @@
-import React from 'react';
-import { motion, useInView } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { BookOpen, Code } from 'lucide-react';
 import SectionWrapper, { SectionTitle } from '../SectionWrapper';
-import { DrawLine, BlurIn, FlipIn } from '../ScrollAnimations';
-import { FloatingShapes } from '../GraphicEffects';
+import { DrawLine, BlurIn, FlipIn, SlideIn } from '../ScrollAnimations';
+import { FloatingShapes, TiltCard } from '../GraphicEffects';
 
 const experiences = [
   {
@@ -12,6 +12,7 @@ const experiences = [
     period: 'June – July 2025',
     icon: <BookOpen size={22} />,
     gradient: 'from-blue-600 to-cyan-500',
+    image: '/SUMMERTRANING.png',
     details: [
       'Mastered core data structures including arrays, linked lists, stacks, queues, and recursion.',
       'Compiled a portfolio of 50+ solved problems across multiple difficulty levels.',
@@ -21,85 +22,137 @@ const experiences = [
 ];
 
 export default function Experience() {
+  const [selectedImage, setSelectedImage] = useState(null);
+
   return (
     <SectionWrapper id="experience" bg="alt">
       <SectionTitle subtitle="Hands-on learning and professional growth">
-        Experience & Training
+        Training
       </SectionTitle>
 
-      <div className="max-w-3xl mx-auto">
-        <div className="relative">
-          {/* Floating geometric shapes */}
-          <FloatingShapes count={5} />
-          {/* Animated vertical line that draws on scroll */}
-          <DrawLine className="absolute left-6 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 to-cyan-500 hidden sm:block" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 relative">
+        {/* Floating geometric shapes */}
+        <FloatingShapes count={5} />
 
+        <div className="space-y-20">
           {experiences.map((exp, i) => {
-            const ref = React.useRef(null);
-            const isInView = useInView(ref, { once: true, amount: 0.3 });
+            const isEven = i % 2 === 0;
 
             return (
-              <div key={i} ref={ref}>
-                <FlipIn axis="X">
-                  <BlurIn>
-                  <div className="relative flex gap-6 mb-8">
-                    {/* Timeline dot — pulses in */}
-                    <div className="hidden sm:flex shrink-0 w-12 h-12 items-center justify-center">
-                      <motion.div
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={isInView ? { scale: 1, rotate: 0 } : {}}
-                        transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
-                        whileHover={{ scale: 1.2, rotate: 10 }}
-                        className={`w-12 h-12 bg-gradient-to-r ${exp.gradient} rounded-xl flex items-center justify-center text-white shadow-lg z-10`}
-                      >
-                        {exp.icon}
-                      </motion.div>
-                    </div>
+              <SlideIn key={i} direction={isEven ? 'left' : 'right'}>
+                <TiltCard maxTilt={1.5}>
+                  <motion.div
+                    className="relative bg-white border border-slate-100/60 rounded-3xl shadow-xl hover:shadow-2xl hover:border-blue-100 transition-all duration-500 overflow-hidden flex flex-col lg:flex-row group"
+                  >
+                    {/* Image Section (if exists) */}
+                    {exp.image && (
+                      <div className={`w-full lg:w-[45%] relative z-10 ${!isEven ? 'lg:order-2' : ''}`}>
+                         <div 
+                           className="relative h-full min-h-[300px] lg:min-h-[400px] overflow-hidden bg-slate-50 flex items-center justify-center cursor-pointer group/zoom"
+                           onClick={() => setSelectedImage({ src: exp.image, alt: exp.title })}
+                         >
+                            {/* Decorative Background */}
+                            <div className={`absolute inset-0 bg-gradient-to-br ${exp.gradient} opacity-[0.03]`} />
+                            <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
-                    {/* Card */}
-                    <motion.div
-                      initial={{ opacity: 0, x: 40 }}
-                      animate={isInView ? { opacity: 1, x: 0 } : {}}
-                      transition={{ duration: 0.6, delay: 0.3 }}
-                      className="flex-1 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-300"
-                    >
-                      <div className="flex items-start justify-between mb-3 flex-wrap gap-2">
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-900">{exp.title}</h3>
-                          <motion.span
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                            transition={{ delay: 0.5 }}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full"
-                          >
-                            {exp.type}
-                          </motion.span>
-                        </div>
-                        <span className="text-sm text-slate-400 font-medium">{exp.period}</span>
+                            <div className="relative z-10 w-full max-w-sm rounded-lg overflow-hidden shadow-2xl shadow-slate-900/10 bg-white p-2 transform transition-transform duration-500 group-hover/zoom:scale-[1.02]">
+                               {/* Hover overlay hint */}
+                               <div className="absolute inset-0 z-20 bg-slate-900/0 group-hover/zoom:bg-slate-900/10 transition-colors duration-300 flex items-center justify-center font-inter">
+                                 <span className="opacity-0 group-hover/zoom:opacity-100 text-slate-800 text-sm font-semibold bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg transform translate-y-4 group-hover/zoom:translate-y-0 transition-all duration-300">
+                                    Click to expand
+                                 </span>
+                               </div>
+                               <img 
+                                  src={exp.image} 
+                                  alt={`${exp.title} Certificate`} 
+                                  className="w-full h-full object-contain" 
+                               />
+                            </div>
+                         </div>
                       </div>
-                      <ul className="space-y-2">
+                    )}
+
+                    {/* Content Section */}
+                    <div className={`w-full relative z-10 p-8 md:p-12 lg:p-16 flex flex-col justify-center ${exp.image ? 'lg:w-[55%]' : ''}`}>
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                          <div className={`w-32 h-32`}>
+                            {React.cloneElement(exp.icon, { size: 128 })}
+                          </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 mb-6 relative">
+                         <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white bg-gradient-to-r ${exp.gradient} shadow-md shadow-blue-500/20`}>
+                             {exp.type}
+                         </span>
+                         <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                             {exp.period}
+                         </span>
+                      </div>
+
+                      <h3 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6 font-syne group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-cyan-600 transition-all duration-300">
+                         {exp.title}
+                      </h3>
+                      
+                      <div className="space-y-4 relative z-10 pt-2 border-t border-slate-100">
                         {exp.details.map((detail, j) => (
                           <motion.li
                             key={j}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={isInView ? { opacity: 1, x: 0 } : {}}
-                            transition={{ delay: 0.5 + j * 0.12, duration: 0.4 }}
-                            className="flex gap-2 text-sm text-slate-600"
+                            initial={{ opacity: 0, y: 10 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.1 + j * 0.1 }}
+                            className="flex items-start gap-4 text-slate-600 text-base leading-relaxed group/item list-none"
                           >
-                            <span className={`mt-1.5 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${exp.gradient} shrink-0`} />
-                            {detail}
+                            <span className={`mt-2 w-2 h-2 rounded-full bg-gradient-to-r ${exp.gradient} shrink-0 shadow-sm`} />
+                            <span>{detail}</span>
                           </motion.li>
                         ))}
-                      </ul>
-                    </motion.div>
-                  </div>
-                </BlurIn>
-                </FlipIn>
-              </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </TiltCard>
+              </SlideIn>
             );
           })}
         </div>
       </div>
+
+      {/* Full Screen Image Modal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            onClick={() => setSelectedImage(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative max-w-5xl w-full max-h-[90vh] flex items-center justify-center outline-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                className="absolute -top-12 right-0 text-white/70 hover:text-white transition-colors bg-black/40 hover:bg-black/60 rounded-full p-2"
+                onClick={() => setSelectedImage(null)}
+                aria-label="Close fullscreen"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <img
+                src={selectedImage.src}
+                alt={selectedImage.alt}
+                className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </SectionWrapper>
   );
 }

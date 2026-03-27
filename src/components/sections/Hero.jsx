@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { CheckSquare, ArrowDown } from 'lucide-react';
+import { ArrowDown } from 'lucide-react';
 import { MagneticHover, TypewriterText, MarqueeText } from '../ScrollAnimations';
 import { FloatingShapes } from '../GraphicEffects';
 
@@ -19,68 +19,81 @@ export default function Hero() {
       id="hero"
       ref={ref}
       className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-16 overflow-hidden"
-      style={{ backgroundColor: 'rgba(255,255,255,0.6)' }}
     >
       {/* Reduced background decoration (relying primarily on ScrollReactiveBackground) */}
-      <FloatingShapes count={6} />
+      {/* <FloatingShapes count={6} /> */}
 
-      <motion.div style={{ y: yText, opacity, scale }} className="relative z-10 text-center px-4 w-full max-w-4xl mx-auto mt-8">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          className="inline-flex items-center gap-2 mb-8 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full"
-        >
-          <div className="h-8 w-8 -rotate-12 transform flex items-center justify-center bg-blue-600 rounded-full shadow-lg border-2 border-white">
-            <CheckSquare className="text-white w-4 h-4" />
-          </div>
-          <span className="text-sm font-medium text-blue-700">Full-Stack & Cloud Developer</span>
-        </motion.div>
+      <motion.div style={{ y: yText, opacity, scale }} className="relative z-10 text-center px-4 w-full max-w-5xl mx-auto mt-8">
+        
+
 
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.7 }}
-          className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight mb-6"
+          className="text-6xl sm:text-7xl lg:text-8xl font-black text-slate-900 leading-tight mb-8 tracking-tight"
         >
           Hi, I'm{' '}
-          <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
-            Jaswanth Reddy
+          <br className="sm:hidden" />
+          <span className="relative inline-block px-4 py-1">
+            {/* Soft Background Blur for Name */}
+            <motion.span 
+              className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl -z-10 shadow-sm"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+            />
+            {/* Radiant Text - Metallic Finish - Fast Speed */}
+            <motion.span
+              animate={{ 
+                backgroundPosition: ["0% center", "200% center"],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+              className="relative inline-block text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-sky-300 to-slate-900 bg-[length:200%_auto] pb-2 font-black"
+            >
+               <TypewriterText text="Jaswanth Reddy" speed={100} cursor={true} />
+            </motion.span>
           </span>
-          <br />
-          Nukalapati
         </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.7 }}
-          className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed"
-        >
-          <TypewriterText text="Building Cloud-Native & Full-Stack Solutions." speed={35} />
-          <br />
-          <TypewriterText text="I craft scalable, enterprise-grade applications with modern technologies." speed={25} />
-        </motion.p>
+        <div className="relative inline-block max-w-3xl mx-auto mb-12">
+            {/* Soft Background Blur for Description */}
+             <motion.div 
+            className="absolute -inset-4 bg-white/40 backdrop-blur-md rounded-xl -z-10 shadow-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+          />
+          <motion.div
+            className="text-xl sm:text-2xl text-slate-700 font-medium leading-relaxed"
+          >
+            <div className="mb-2">
+              <TypewriterText text="Building Cloud-Native & Full-Stack Solutions." speed={30} delay={1.5} />
+            </div>
+            <div>
+              <TypewriterText text="I craft scalable, enterprise-grade applications with modern technologies." speed={30} delay={2.5} />
+            </div>
+          </motion.div>
+        </div>
 
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.7 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-5"
         >
-          <MagneticHover strength={0.2}>
+          <MagneticHover strength={0.3}>
             <a
               href="#projects"
-              className="px-8 py-3.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30 hover:-translate-y-0.5"
+              className="px-10 py-4 bg-blue-600 text-white text-lg font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 hover:shadow-2xl hover:shadow-blue-600/40 hover:-translate-y-1"
             >
               View My Work
             </a>
           </MagneticHover>
-          <MagneticHover strength={0.2}>
+          <MagneticHover strength={0.3}>
             <a
               href="#contact"
-              className="px-8 py-3.5 bg-white text-slate-700 font-semibold rounded-xl border border-slate-200 hover:border-blue-300 hover:text-blue-600 transition-all hover:-translate-y-0.5"
+              className="px-10 py-4 bg-white/80 backdrop-blur-md text-slate-800 text-lg font-bold rounded-2xl border border-white/60 hover:border-blue-300 hover:text-blue-600 transition-all hover:-translate-y-1 hover:bg-white shadow-lg shadow-black/5"
             >
               Get In Touch
             </a>

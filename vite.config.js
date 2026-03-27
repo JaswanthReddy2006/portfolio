@@ -5,8 +5,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   server: {
     port: 80,
-    host: true, // <--- Add this! This exposes the server to the internet
-    strictPort: true,
+    host: true,
+    strictPort: false,
   },
   plugins: [react(), tailwindcss()],
 })

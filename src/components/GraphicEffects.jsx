@@ -3,98 +3,193 @@ import { motion, useScroll, useTransform, useInView, useSpring, useMotionValue }
 
 // ─── Simplified Beautiful Background ──────────────────────────────────────
 export function ScrollReactiveBackground() {
+  const canvasRef = useRef(null);
+  
+  // Use Refs for animation state to avoid Re-renders (Performance Critical)
+  const mouseRef = useRef({ x: -1000, y: -1000 }); // Start off-screen
+  
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+    let particles = [];
+
+    // --- Configuration for Projector Impact ---
+    const PARTICLE_COUNT = window.innerWidth > 1000 ? 120 : 60; // Increased density for "more geometric things"
+    const CONNECT_DISTANCE = 180; // Slightly longer connections for dense web
+    const MOUSE_RADIUS = 350; 
+    
+    // --- Resize Handler ---
+    const resizeCanvas = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    };
+
+    // --- Particle Logic ---
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.8; // Slightly faster for "life"
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.baseSize = Math.random() * 2 + 1.5; // Larger base size for visibility
+        this.size = this.baseSize;
+        // Base color is Slate-400 for visibility on white
+        this.baseColor = 'rgba(148, 163, 184, 0.4)'; 
+        // Active color is bright Cyan/Blue for "Pop"
+        this.activeColor = 'rgba(6, 182, 212, 0.9)'; 
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Wrap around edges for continuous flow
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
+
+        // Interaction Logic
+        const dx = mouseRef.current.x - this.x;
+        const dy = mouseRef.current.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < MOUSE_RADIUS) {
+            // "Magnify" effect - particles grow when near mouse
+            const force = (MOUSE_RADIUS - distance) / MOUSE_RADIUS;
+            this.size = this.baseSize + (force * 3); // Grow up to +3px
+        } else {
+            this.size = this.baseSize;
+        }
+      }
+
+      draw() {
+        // Dynamic coloring based on mouse proximity
+        const dx = mouseRef.current.x - this.x;
+        const dy = mouseRef.current.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        
+        if (distance < MOUSE_RADIUS) {
+            ctx.fillStyle = this.activeColor;
+        } else {
+            ctx.fillStyle = this.baseColor;
+        }
+        
+        ctx.fill();
+      }
+    }
+
+    const initParticles = () => {
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(new Particle());
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw Particles first
+      particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+      });
+
+      // Draw Network Connections
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a; b < particles.length; b++) {
+          const dx = particles[a].x - particles[b].x;
+          const dy = particles[a].y - particles[b].y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (distance < CONNECT_DISTANCE) {
+            // Check if this connection is within the "Flashlight" zone
+            // We calculate the midpoint of the line to check proximity to mouse
+            const midX = (particles[a].x + particles[b].x) / 2;
+            const midY = (particles[a].y + particles[b].y) / 2;
+            const distToMouse = Math.sqrt(
+                Math.pow(midX - mouseRef.current.x, 2) + 
+                Math.pow(midY - mouseRef.current.y, 2)
+            );
+
+            ctx.beginPath();
+            
+            if (distToMouse < MOUSE_RADIUS) {
+                // Lit up connection
+                const intensity = 1 - (distToMouse / MOUSE_RADIUS);
+                ctx.strokeStyle = `rgba(6, 182, 212, ${intensity * 0.8})`; // Bright Cyan
+                ctx.lineWidth = 1.5; // Thicker lines for projector
+            } else {
+                // Dim connection
+                const opacity = 1 - (distance / CONNECT_DISTANCE);
+                ctx.strokeStyle = `rgba(148, 163, 184, ${opacity * 0.15})`; // Faint slate
+                ctx.lineWidth = 0.5;
+            }
+
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Draw "Projector Cursor" - A subtle ring around the mouse to guide the eye
+      if (mouseRef.current.x > 0) {
+          ctx.beginPath();
+          ctx.arc(mouseRef.current.x, mouseRef.current.y, 20, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(37, 99, 235, 0.3)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    // --- Event Listeners ---
+    const handleMouseMove = (e) => {
+      mouseRef.current = { x: e.clientX, y: e.clientY };
+    };
+    
+    // Auto-drift mouse for "Curiosity" when idle/loading
+    // (Optional: can add later if requested, simpler is better for perf)
+
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    // Init
+    resizeCanvas();
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('mousemove', handleMouseMove);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }}>
-      {/* Gradient orb 1 — blue */}
-      <motion.div
-        className="absolute rounded-full"
-        initial={{ x: '-10vw', y: '-5vh', scale: 1 }}
-        animate={{ x: ['-10vw', '10vw', '-10vw'], y: ['-5vh', '15vh', '-5vh'], scale: [1, 1.1, 1] }}
-        transition={{ repeat: Infinity, duration: 15, ease: 'easeInOut' }}
-        style={{
-          width: 500,
-          height: 500,
-          left: 0,
-          top: 0,
-          background: 'radial-gradient(circle at center, hsla(210, 70%, 70%, 0.15) 0%, transparent 60%)',
-        }}
-      />
-      {/* Gradient orb 2 — cyan/teal */}
-      <motion.div
-        className="absolute rounded-full"
-        initial={{ x: '80vw', y: '10vh', scale: 1.2 }}
-        animate={{ x: ['80vw', '60vw', '80vw'], y: ['10vh', '30vh', '10vh'], scale: [1.2, 1, 1.2] }}
-        transition={{ repeat: Infinity, duration: 18, ease: 'easeInOut' }}
-        style={{
-          width: 400,
-          height: 400,
-          left: 0,
-          top: 0,
-          background: 'radial-gradient(circle at center, hsla(190, 65%, 65%, 0.12) 0%, transparent 60%)',
-        }}
-      />
-      {/* Gradient orb 3 — purple */}
-      <motion.div
-        className="absolute rounded-full"
-        initial={{ x: '40vw', y: '60vh', scale: 0.8 }}
-        animate={{ x: ['40vw', '50vw', '40vw'], y: ['60vh', '50vh', '60vh'], scale: [0.8, 1, 0.8] }}
-        transition={{ repeat: Infinity, duration: 20, ease: 'easeInOut' }}
-        style={{
-          width: 550,
-          height: 550,
-          left: 0,
-          top: 0,
-          background: 'radial-gradient(circle at center, hsla(260, 60%, 70%, 0.10) 0%, transparent 60%)',
-        }}
-      />
-      {/* Static mesh grid - simpler and cheaper than Rotating mesh grid */}
-      <svg
-        className="absolute inset-0 w-full h-full opacity-[0.025]"
-      >
-        <defs>
-          <pattern id="scroll-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-            <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#64748b" strokeWidth="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#scroll-grid)" />
-      </svg>
-      {/* Subtle radial vignette */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,1) 100%)',
-        }}
+    <div className="fixed inset-0 pointer-events-none overflow-hidden bg-white" style={{ zIndex: 0 }}>
+      {/* 1. Warm/Modern Base Gradient (Visible on Projector) */}
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50" />
+      
+      {/* 2. The Canvas Network */}
+      <canvas 
+        ref={canvasRef} 
+        className="absolute inset-0 w-full h-full"
       />
     </div>
   );
 }
 
-// ─── Animated SVG Wave Divider ───────────────────────────────────────
-export function WaveDivider({ flip = false, color = '#f8fafc', className = '' }) {
-  return (
-    <div className={`w-full overflow-hidden leading-[0] ${flip ? 'rotate-180' : ''} ${className}`}>
-      <svg
-        viewBox="0 0 1200 120"
-        preserveAspectRatio="none"
-        className="relative block w-full h-[60px] sm:h-[80px]"
-      >
-        <motion.path
-          d="M0,60 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z"
-          fill={color}
-          initial={{ x: -1200 }}
-          animate={{ x: 0 }}
-          transition={{ repeat: Infinity, duration: 20, ease: 'linear' }}
-        />
-        <motion.path
-          d="M0,60 C200,100 400,20 600,60 C800,100 1000,20 1200,60 L1200,120 L0,120 Z"
-          fill={color}
-          initial={{ x: 0 }}
-          animate={{ x: 1200 }}
-          transition={{ repeat: Infinity, duration: 20, ease: 'linear' }}
-        />
-      </svg>
-    </div>
-  );
+// ─── Modern Spacer (No Waves) ───────────────────────────────────────
+export function SectionSpacer() {
+  return <div className="h-24 w-full" />;
 }
 
 // ─── Floating Geometric Shapes ───────────────────────────────────────

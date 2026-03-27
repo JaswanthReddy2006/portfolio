@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScrollProgress } from './components/ScrollAnimations';
-import { WaveDivider, ScrollReactiveBackground } from './components/GraphicEffects';
+import { SectionSpacer, ScrollReactiveBackground } from './components/GraphicEffects';
 import Navbar from './components/Navbar';
 import Hero from './components/sections/Hero';
 import About from './components/sections/About';
@@ -11,8 +11,10 @@ import Projects from './components/sections/Projects';
 import Certifications from './components/sections/Certifications';
 import Experience from './components/sections/Experience';
 import Hackathons from './components/sections/Hackathons';
+import ExtraCurricular from './components/sections/ExtraCurricular';
 import Contact from './components/sections/Contact';
 import Footer from './components/Footer';
+import Chatbot from './components/Chatbot';
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
@@ -55,23 +57,26 @@ function App() {
       <div className="text-slate-900 font-inter min-h-screen overflow-x-hidden relative">
         <ScrollReactiveBackground />
         <div className="relative" style={{ zIndex: 1 }}>
-        <Navbar />
+        <Chatbot />
+      <Navbar />
       <Hero />
-      <WaveDivider color="#f8fafc" />
+      <SectionSpacer />
       <About />
-      <WaveDivider color="#ffffff" flip />
+      <SectionSpacer />
       <Education />
-      <WaveDivider color="#ffffff" />
+      <SectionSpacer />
       <Skills />
-      <WaveDivider color="#f8fafc" flip />
+      <SectionSpacer />
       <Projects />
-      <WaveDivider color="#ffffff" />
+      <SectionSpacer />
       <Certifications />
-      <WaveDivider color="#f8fafc" flip />
+      <SectionSpacer />
       <Experience />
-      <WaveDivider color="#ffffff" />
+      <SectionSpacer />
       <Hackathons />
-      <WaveDivider color="#f8fafc" flip />
+      <SectionSpacer />
+      <ExtraCurricular />
+      <SectionSpacer />
       <Contact />
       <Footer />
       </div>

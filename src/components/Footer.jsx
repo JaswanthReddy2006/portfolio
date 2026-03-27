@@ -46,23 +46,6 @@ export default function Footer() {
             </motion.a>
           ))}
         </div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="text-sm text-slate-400 flex items-center justify-center gap-1"
-        >
-          &copy; {currentYear} Jaswanth Reddy Nukalapati. Built with
-          <motion.span
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            <Heart size={14} className="text-red-400 inline" fill="currentColor" />
-          </motion.span>
-          using React & Tailwind CSS.
-        </motion.p>
       </div>
     </motion.footer>
   );

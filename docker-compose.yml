@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  portfolio:
+    image: jaswanthr57/portfolio-app:latest
+    container_name: portfolio
+    restart: unless-stopped
+    # We expose port 5000 internally so Caddy can route to it
+    expose:
+      - "5000"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    # Auto-provisions Let's Encrypt SSL and proxies traffic to the Node backend
+    command: caddy reverse-proxy --from jaswanthreddy.tech --to http://portfolio:5000
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

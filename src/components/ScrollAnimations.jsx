@@ -1,24 +1,20 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { motion, useScroll, useTransform, useInView, useSpring, useMotionValue } from 'framer-motion';
+import { motion, useScroll, useTransform, useInView, useSpring, useMotionValue, animate } from 'framer-motion';
 
-function useScrollAnimation(offset = ['0 1', '0.3 1']) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset,
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const y = useTransform(scrollYProgress, [0, 1], [80, 0]);
-  return { ref, opacity, y, scrollYProgress };
-}
+// Common viewport settings for better performance
+// 'once: true' ensures animations don't re-run on scroll up/down, saving resources significantly.
+const viewportConfig = { once: true, amount: 0.1, margin: "0px" };
+
+// Elegant physics-based spring feel or smooth bezier
+const elegantTransition = { duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }; // Cubic bezier for "smooth snap" feel
 
 export function ScrollReveal({ children, className = '', delay = 0 }) {
-  const { ref, opacity, y } = useScrollAnimation();
   return (
     <motion.div
-      ref={ref}
-      style={{ opacity, y }}
-      transition={{ delay, duration: 0.6, ease: 'easeOut' }}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={viewportConfig}
+      transition={{ ...elegantTransition, delay }}
       className={className}
     >
       {children}
@@ -27,22 +23,13 @@ export function ScrollReveal({ children, className = '', delay = 0 }) {
 }
 
 export function SlideIn({ children, direction = 'left', className = '', delay = 0 }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['0 1', '0.3 1'],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const x = useTransform(
-    scrollYProgress,
-    [0, 1],
-    [direction === 'left' ? -100 : 100, 0]
-  );
+  const xOffset = direction === 'left' ? -30 : 30; 
   return (
     <motion.div
-      ref={ref}
-      style={{ opacity, x }}
-      transition={{ delay, duration: 0.6, ease: 'easeOut' }}
+      initial={{ opacity: 0, x: xOffset }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={viewportConfig}
+      transition={{ ...elegantTransition, delay }}
       className={className}
     >
       {children}
@@ -51,18 +38,12 @@ export function SlideIn({ children, direction = 'left', className = '', delay = 
 }
 
 export function ScaleIn({ children, className = '', delay = 0 }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['0 1', '0.35 1'],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.85, 1]);
   return (
     <motion.div
-      ref={ref}
-      style={{ opacity, scale }}
-      transition={{ delay, duration: 0.5, ease: 'easeOut' }}
+      initial={{ opacity: 0, scale: 0.95 }} 
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={viewportConfig}
+      transition={{ ...elegantTransition, delay }}
       className={className}
     >
       {children}
@@ -71,18 +52,12 @@ export function ScaleIn({ children, className = '', delay = 0 }) {
 }
 
 export function RotateIn({ children, className = '', direction = 1 }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['0 1', '0.4 1'],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0.5, 1]);
-  const rotate = useTransform(scrollYProgress, [0, 1], [12 * direction, 0]);
-  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
   return (
     <motion.div
-      ref={ref}
-      style={{ opacity, rotate, scale }}
+      initial={{ opacity: 0, rotate: 3 * direction, scale: 0.95 }}
+      whileInView={{ opacity: 1, rotate: 0, scale: 1 }}
+      viewport={viewportConfig}
+      transition={{ ...elegantTransition, duration: 0.8 }}
       className={className}
     >
       {children}
@@ -91,44 +66,43 @@ export function RotateIn({ children, className = '', direction = 1 }) {
 }
 
 export function BlurIn({ children, className = '' }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['0 1', '0.35 1'],
-  });
-  const opacity = useTransform(scrollYProgress, [0, 1], [0, 1]);
-  const filter = useTransform(scrollYProgress, [0, 1], ['blur(12px)', 'blur(0px)']);
-  const y = useTransform(scrollYProgress, [0, 1], [40, 0]);
+  // REPLACED BLUR with a high-end "Soft Rise" animation
+  // No blur filter - cleaner, sharper, more performant.
   return (
-    <motion.div ref={ref} style={{ opacity, filter, y }} className={className}>
+    <motion.div
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={viewportConfig}
+      transition={{ duration: 0.7, ease: [0.25, 0.4, 0.25, 1] }} // Soft ease-out
+      className={className}
+    >
       {children}
     </motion.div>
   );
 }
 
-export function ParallaxFloat({ children, className = '', speed = 0.3 }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  });
-  const y = useTransform(scrollYProgress, [0, 1], [speed * 100, speed * -100]);
+// Optimized Parallax: Simply floats slightly up and down instead of reacting to scroll
+export function ParallaxFloat({ children, className = '', speed = 2 }) {
   return (
-    <motion.div ref={ref} style={{ y }} className={className}>
+    <motion.div 
+      animate={{ y: [0, -10, 0] }}
+      transition={{ repeat: Infinity, duration: speed + 2, ease: "easeInOut" }}
+      className={className}
+    >
       {children}
     </motion.div>
   );
 }
 
+// Text Reveal - simpler with whileInView
 export function TextReveal({ children, className = '' }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
   return (
-    <div ref={ref} className={`overflow-hidden ${className}`}>
+    <div className={`overflow-hidden ${className}`}>
       <motion.div
         initial={{ y: '100%' }}
-        animate={isInView ? { y: 0 } : { y: '100%' }}
-        transition={{ duration: 0.7, ease: [0.33, 1, 0.68, 1] }}
+        whileInView={{ y: 0 }}
+        viewport={viewportConfig}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         {children}
       </motion.div>
@@ -136,208 +110,198 @@ export function TextReveal({ children, className = '' }) {
   );
 }
 
+// Draw Line: Simple grow animation instead of scroll-linked
 export function DrawLine({ className = '' }) {
-  const ref = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start 0.8', 'end 0.3'],
-  });
-  const scaleY = useSpring(scrollYProgress, { stiffness: 100, damping: 30 });
   return (
     <motion.div
-      ref={ref}
-      style={{ scaleY, transformOrigin: 'top' }}
+      initial={{ scaleY: 0 }}
+      whileInView={{ scaleY: 1 }}
+      viewport={viewportConfig}
+      transition={{ duration: 1.5, ease: "easeInOut" }}
+      style={{ transformOrigin: 'top', willChange: 'transform' }}
       className={className}
     />
   );
 }
+
+// ─── Missing Components Restored & Optimized ─────────────────────────────
 
 export function ScrollProgress() {
+  // Simple progress bar that updates on scroll but throttled by browser paints
+  // useScroll + useSpring is generally OK, but if user wants "simple", we can keep it or remove it.
+  // Given "remove all animation", maybe simplify it to just CSS position sticky or remove the spring.
   const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
+  
   return (
     <motion.div
-      style={{ scaleX, transformOrigin: 'left' }}
-      className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-500 z-[100]"
+      className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-500 origin-left z-[100]"
+      style={{ scaleX: scrollYProgress }}
     />
   );
 }
 
-export function StaggerChildren({ children, className = '' }) {
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.2 }}
-      variants={{
-        visible: { transition: { staggerChildren: 0.12 } },
-      }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-export const staggerItem = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-};
-
-export const staggerItemScale = {
-  hidden: { opacity: 0, scale: 0.8, y: 20 },
-  visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
-};
-
-export const staggerItemSlideLeft = {
-  hidden: { opacity: 0, x: -60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-};
-
-export const staggerItemSlideRight = {
-  hidden: { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-};
-
-export const staggerItemRotate = {
-  hidden: { opacity: 0, rotate: -8, scale: 0.9 },
-  visible: { opacity: 1, rotate: 0, scale: 1, transition: { duration: 0.6, ease: 'easeOut' } },
-};
-
-// Animated counter that counts up when scrolled into view
-export function CountUp({ to, duration = 2, suffix = '', prefix = '', className = '' }) {
+export function MagneticHover({ children, className = '' }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const [count, setCount] = useState(0);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const end = parseFloat(to);
-    const isFloat = String(to).includes('.');
-    const decimals = isFloat ? String(to).split('.')[1].length : 0;
-    const startTime = performance.now();
-    const step = (now) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / (duration * 1000), 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-      const current = eased * end;
-      setCount(isFloat ? current.toFixed(decimals) : Math.floor(current));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [isInView, to, duration]);
+  const handleMouse = (e) => {
+    const { clientX, clientY } = e;
+    const { left, top, width, height } = ref.current.getBoundingClientRect();
+    const x = clientX - (left + width / 2);
+    const y = clientY - (top + height / 2);
+    setPosition({ x: x * 0.1, y: y * 0.1 }); // Reduced magnetic strength
+  };
 
-  return (
-    <span ref={ref} className={className}>
-      {prefix}{count}{suffix}
-    </span>
-  );
-}
-
-// Text that types out character by character
-export function TypewriterText({ text, className = '', speed = 40 }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
-  const [displayed, setDisplayed] = useState('');
-
-  useEffect(() => {
-    if (!isInView) return;
-    let i = 0;
-    setDisplayed('');
-    const interval = setInterval(() => {
-      i++;
-      setDisplayed(text.slice(0, i));
-      if (i >= text.length) clearInterval(interval);
-    }, speed);
-    return () => clearInterval(interval);
-  }, [isInView, text, speed]);
-
-  return (
-    <span ref={ref} className={className}>
-      {displayed}
-      {isInView && displayed.length < text.length && (
-        <motion.span
-          animate={{ opacity: [1, 0] }}
-          transition={{ repeat: Infinity, duration: 0.6 }}
-          className="inline-block w-[2px] h-[1em] bg-blue-500 ml-0.5 align-text-bottom"
-        />
-      )}
-    </span>
-  );
-}
-
-// 3D flip-in reveal
-export function FlipIn({ children, className = '', axis = 'X' }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, amount: 0.3 });
-  return (
-    <div ref={ref} style={{ perspective: '1200px' }} className={className}>
-      <motion.div
-        initial={{ opacity: 0, [`rotate${axis}`]: axis === 'X' ? 90 : -90 }}
-        animate={isInView ? { opacity: 1, [`rotate${axis}`]: 0 } : {}}
-        transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-        style={{ transformOrigin: axis === 'X' ? 'top center' : 'left center' }}
-      >
-        {children}
-      </motion.div>
-    </div>
-  );
-}
-
-// Magnetic hover that follows cursor
-export function MagneticHover({ children, className = '', strength = 0.3 }) {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 200, damping: 20 });
-  const springY = useSpring(y, { stiffness: 200, damping: 20 });
-
-  function handleMouse(e) {
-    const rect = ref.current.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    x.set((e.clientX - cx) * strength);
-    y.set((e.clientY - cy) * strength);
-  }
-
-  function handleLeave() {
-    x.set(0);
-    y.set(0);
-  }
-
-  return (
-    <motion.div
-      ref={ref}
-      onMouseMove={handleMouse}
-      onMouseLeave={handleLeave}
-      style={{ x: springX, y: springY }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
-// Glow pulse border animation
-export function GlowPulse({ children, className = '', color = 'blue' }) {
-  const glowColors = {
-    blue: 'shadow-blue-400/50',
-    cyan: 'shadow-cyan-400/50',
-    purple: 'shadow-purple-400/50',
-    amber: 'shadow-amber-400/50',
+  const reset = () => {
+    setPosition({ x: 0, y: 0 });
   };
 
   return (
     <motion.div
-      animate={{
-        boxShadow: [
-          '0 0 0px rgba(59,130,246,0)',
-          '0 0 20px rgba(59,130,246,0.3)',
-          '0 0 0px rgba(59,130,246,0)',
-        ],
+      ref={ref}
+      className={className}
+      animate={{ x: position.x, y: position.y }}
+      transition={{ type: "spring", stiffness: 150, damping: 15, mass: 0.1 }}
+      onMouseMove={handleMouse}
+      onMouseLeave={reset}
+      style={{ willChange: 'transform' }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+export function TypewriterText({ text, speed = 30, cursor = false, className = '', delay = 0 }) {
+  // Split text into words and spaces to avoid wrapping mid-word
+  const words = text.split(/(\s+)/);
+
+  const container = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: speed / 1000, delayChildren: delay },
+    },
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 200,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: 10,
+      scale: 0.3,
+    },
+  };
+
+  return (
+    <motion.span
+      className={`inline-block ${className}`}
+      variants={container}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportConfig}
+    >
+      {words.map((word, wordIndex) => (
+        <motion.span key={wordIndex} className="inline-block whitespace-nowrap">
+          {Array.from(word).map((char, charIndex) => (
+            <motion.span variants={child} key={`${wordIndex}-${charIndex}`} className="inline-block" style={{ whiteSpace: "pre" }}>
+              {char}
+            </motion.span>
+          ))}
+        </motion.span>
+      ))}
+      {cursor && (
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 0] }}
+          transition={{ repeat: Infinity, duration: 0.8 }}
+          className="inline-block ml-0.5 w-[2px] h-[1em] bg-blue-500 align-middle"
+        />
+      )}
+    </motion.span>
+  );
+}
+
+export function MarqueeText({ children, direction = 'left', speed = 20, className = '' }) {
+  // Using simplified CSS animation or basic framer loop
+  // 'speed' acts as duration here
+  return (
+    <div className={`overflow-hidden flex whitespace-nowrap ${className}`}>
+      <motion.div
+        className="flex min-w-full gap-8"
+        animate={{
+          x: direction === 'left' ? ['0%', '-50%'] : ['-50%', '0%'],
+        }}
+        transition={{
+          x: {
+            repeat: Infinity,
+            repeatType: "loop",
+            duration: speed,
+            ease: "linear",
+          },
+        }}
+        style={{ willChange: 'transform' }}
+      >
+        {children}
+        {children} {/* Duplicate content for seamless loop */}
+      </motion.div>
+    </div>
+  );
+}
+
+// ─── Additional Missing Components ───────────────────────────────────────
+
+export const StaggerChildren = ({ children, className = '', stagger = 0.1 }) => {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportConfig}
+      variants={{
+        hidden: {},
+        visible: {
+          transition: {
+            staggerChildren: stagger,
+          },
+        },
       }}
-      transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut' }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+export const staggerItemScale = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100 } },
+};
+
+export const staggerItemSlideLeft = {
+  hidden: { opacity: 0, x: -30 },
+  visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 100 } },
+};
+
+export const staggerItemRotate = {
+  hidden: { opacity: 0, rotate: -5, scale: 0.9 },
+  visible: { opacity: 1, rotate: 0, scale: 1, transition: { type: "spring", stiffness: 100 } },
+};
+
+export function FlipIn({ children, className = '', delay = 0 }) {
+   return (
+    <motion.div
+      initial={{ opacity: 0, rotateX: 90 }}
+      whileInView={{ opacity: 1, rotateX: 0 }}
+      viewport={viewportConfig}
+      transition={{ delay, duration: 0.6, ease: "easeOut" }}
       className={className}
     >
       {children}
@@ -345,20 +309,60 @@ export function GlowPulse({ children, className = '', color = 'blue' }) {
   );
 }
 
-// Marquee / infinite scroll text
-export function MarqueeText({ text, className = '', speed = 20 }) {
-  return (
-    <div className={`overflow-hidden whitespace-nowrap ${className}`}>
-      <motion.div
-        animate={{ x: ['0%', '-50%'] }}
-        transition={{ repeat: Infinity, duration: speed, ease: 'linear' }}
-        className="inline-flex"
-      >
-        <span className="pr-8">{text}</span>
-        <span className="pr-8">{text}</span>
-        <span className="pr-8">{text}</span>
-        <span className="pr-8">{text}</span>
-      </motion.div>
-    </div>
-  );
+export function GlowPulse({ children, className = '' }) {
+   // Simplified glow pulse using CSS filter drop-shadow or box-shadow
+   // Avoiding filter() if possible, but glow implies it.
+   // Using box-shadow is cheaper than filter: drop-shadow
+   return (
+    <motion.div
+      animate={{ boxShadow: ["0 0 0px rgba(59, 130, 246, 0)", "0 0 15px rgba(59, 130, 246, 0.4)", "0 0 0px rgba(59, 130, 246, 0)"] }}
+      transition={{ repeat: Infinity, duration: 2.5, ease: "easeInOut" }}
+      className={`${className} rounded-lg`}
+    >
+      {children}
+    </motion.div>
+   );
 }
+
+export function CountUp({ to, duration = 2, suffix = '', className = '' }) {
+    const ref = useRef(null);
+    const isInView = useInView(ref, { once: true });
+    const [displayValue, setDisplayValue] = useState("0");
+    
+    // Parse the target value (handle strings like "7.87" or "88.2")
+    const targetValue = parseFloat(to);
+    const isFloat = to.toString().includes('.');
+    const decimals = isFloat ? to.toString().split('.')[1].length : 0;
+
+    useEffect(() => {
+        if (!isInView) return;
+        
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / (duration * 1000), 1);
+            
+            // Easing function (easeOutExpo)
+            const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            
+            const current = calculateValue(0, targetValue, ease);
+            setDisplayValue(current.toFixed(decimals));
+
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                 setDisplayValue(targetValue.toFixed(decimals));
+            }
+        };
+        
+        const calculateValue = (start, end, pct) => {
+            return start + (end - start) * pct;
+        }
+
+        window.requestAnimationFrame(step);
+    }, [isInView, targetValue, duration, decimals]);
+
+    return <span ref={ref} className={className}>{displayValue}{suffix}</span>;
+}
+
+
